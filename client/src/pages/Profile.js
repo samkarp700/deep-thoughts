@@ -4,24 +4,23 @@ import { Navigate, useParams } from 'react-router-dom';
 import ThoughtForm from '../components/ThoughtForm';
 import ThoughtList from '../components/ThoughtList';
 import FriendList from '../components/FriendList';
-import { ADD_FRIEND } from '../utils/mutations';
 
 import { useQuery, useMutation } from '@apollo/client';
 import { QUERY_USER, QUERY_ME } from '../utils/queries';
+import { ADD_FRIEND } from '../utils/mutations';
 import Auth from '../utils/auth';
-
 
 const Profile = (props) => {
   const { username: userParam } = useParams();
-  
-  const [addFriend] = useMutation(ADD_FRIEND);
 
+  const [addFriend] = useMutation(ADD_FRIEND);
   const { loading, data } = useQuery(userParam ? QUERY_USER : QUERY_ME, {
-    variables: { username: userParam }
+    variables: { username: userParam },
   });
 
-  const user = data?.user || data?.user || {};
+  const user = data?.me || data?.user || {};
 
+  // navigate to personal profile page if username is yours
   if (Auth.loggedIn() && Auth.getProfile().data.username === userParam) {
     return <Navigate to="/profile:username" />;
   }
@@ -42,7 +41,7 @@ const Profile = (props) => {
   const handleClick = async () => {
     try {
       await addFriend({
-        variables: { id: user._id}
+        variables: { id: user._id },
       });
     } catch (e) {
       console.error(e);
@@ -53,20 +52,22 @@ const Profile = (props) => {
     <div>
       <div className="flex-row mb-3">
         <h2 className="bg-dark text-secondary p-3 display-inline-block">
-           Viewing {userParam ? `${user.username}'s` : 'your'} profile.
+          Viewing {userParam ? `${user.username}'s` : 'your'} profile.
         </h2>
+
         {userParam && (
-        <button className='btn ml-auto' onClick={handleClick}>
-          Add Friend
-        </button>
+          <button className="btn ml-auto" onClick={handleClick}>
+            Add Friend
+          </button>
         )}
       </div>
 
       <div className="flex-row justify-space-between mb-3">
         <div className="col-12 mb-3 col-lg-8">
-          <ThoughtList 
-          thoughts={user.thoughts} 
-          title={`${user.username}'s thoughts...`} />
+          <ThoughtList
+            thoughts={user.thoughts}
+            title={`${user.username}'s thoughts...`}
+          />
         </div>
 
         <div className="col-12 col-lg-3 mb-3">
@@ -75,10 +76,9 @@ const Profile = (props) => {
             friendCount={user.friendCount}
             friends={user.friends}
           />
-          
-          </div>
+        </div>
       </div>
-      <div className='mb-3'>{!userParam && <ThoughtForm />}</div>
+      <div className="mb-3">{!userParam && <ThoughtForm />}</div>
     </div>
   );
 };
